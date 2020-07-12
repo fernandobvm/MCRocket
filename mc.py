@@ -12,7 +12,8 @@ class Rocket:
         return l.ET.parse(l.os.path.dirname(self.file_path) + '/rocket.ork')
 
     def to_ork(self,xml):
-        xml.write(self.name,'utf-8')
+        xml.write(self.name+'.ork','utf-8')
+        self.file_path = l.os.getcwd() +  '\\' + self.name + '.ork'
 
 
 
@@ -59,11 +60,11 @@ class Simulation:
 
         #Tamanho do Trilho de Lançamento
         launchrodlength = l.ET.SubElement(conditions,'launchrodlength')
-        launchrodlength.text = self.launch_rod
+        launchrodlength.text = str(self.launch_rod)
 
         #Ângulo de lançamento
         launchrodangle = l.ET.SubElement(conditions,'launchrodangle')
-        launchrodangle.text = str(elevation)
+        launchrodangle.text = str(self.elevation)
 
         #Direção do lançamento
         launchroddirection = l.ET.SubElement(conditions,'launchroddirection')
@@ -72,15 +73,15 @@ class Simulation:
 
         #Vento Médio
         windaverage = l.ET.SubElement(conditions,'windaverage')
-        windaverage.text = str(wind_velocity)
+        windaverage.text = str(self.wind_velocity)
 
         #Turbulência do Vento
         windturbulence = l.ET.SubElement(conditions,'windturbulence')
-        windturbulence.text = str(turbulency)
+        windturbulence.text = str(self.turbulency)
 
         #Direção do Vento
         launchwinddirection = l.ET.SubElement(conditions,'winddirection')
-        launchwinddirection.text = str(wind_direction)
+        launchwinddirection.text = str(self.wind_direction)
 
         #Altitude do lugar de lançamento
         launchaltitude = l.ET.SubElement(conditions,'launchaltitude')
@@ -196,10 +197,10 @@ class Simulation:
         rocket.to_ork(rocket_run)
 
     def run(self,rocket):
-        l.subprocess.call(["java", "-jar", "D:/Documentos/lib/UnB/4Semestre/Capital/OpenRocketTurbo3.jar", "--runSimulations", self.rocket.file_path])
+        l.subprocess.call(["java", "-jar", "D:/Documentos/library/UnB/4Semestre/Capital/OpenRocketTurbo2.jar", "--runSimulations", self.rocket.file_path])
         self.simu_path = rocket.file_path
 
-    def results(self,path):
+    def results(self,rocket):
         #tree = ET.parse(path)
         tree = self.rocket.to_xml()
         root_after = tree.getroot()
@@ -216,19 +217,22 @@ class Simulation:
 
             for datapoints in databranch.findall('datapoint'):
                 line = datapoints.text
-                line = l.ListConversor(line,sep)
-                simu.append(line)
-                simu = l.pd.DataFrame(simu)
-            
+                line = [float(item) for item in line.split(',')]
+                simu.append(line)    
+            simu = l.pd.DataFrame(simu)
             simus.append(simu)
 
-        return simus
+        self.data = simus
 
-    def plot(self,data, simulation_number = 0):
-        fig = l.plt.figure(figsize=(9,9))
+    def plot(self,simulation_number = 0):
+        fig = l.plt.figure()
         ax = l.plt.axes(projection='3d')
         if simulation_number == 0:
-            ax.plot(data[:][:][7],data[:][:][6],data[:][:][1])
+            ax.plot(self.data[0].iloc[:,7],self.data[0].iloc[:,6],self.data[0].iloc[:,1])
+            ax.set_xlabel('Posição a Norte')
+            ax.set_ylabel('Posição a Leste')
+            ax.set_zlabel('Altitude')
+            #l.plt.plot(self.data[0].iloc[:,0],self.data[0].iloc[:,1])
         else:
-            ax.plot(data[simulation_number][:][7],data[simulation_number][:][6],data[simulation_number][:][1])
+            ax.plot3D(self.data[simulation_number].iloc[:,7],self.data[simulation_number].iloc[:,6],self.data[simulation_number].iloc[:,1])
         l.plt.show()
