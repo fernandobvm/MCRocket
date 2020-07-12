@@ -224,15 +224,26 @@ class Simulation:
 
         self.data = simus
 
-    def plot(self,simulation_number = 0):
-        fig = l.plt.figure()
-        ax = l.plt.axes(projection='3d')
-        if simulation_number == 0:
-            ax.plot(self.data[0].iloc[:,7],self.data[0].iloc[:,6],self.data[0].iloc[:,1])
-            ax.set_xlabel('Posição a Norte')
-            ax.set_ylabel('Posição a Leste')
-            ax.set_zlabel('Altitude')
-            #l.plt.plot(self.data[0].iloc[:,0],self.data[0].iloc[:,1])
+    def plot(self,simulation_number = 0, projection = 3):
+        if projection == 3:    
+            fig = l.plt.figure()
+            ax = l.plt.axes(projection='3d')
+            if simulation_number == 0:
+                ax.plot(self.data[0].iloc[:,7],self.data[0].iloc[:,6],self.data[0].iloc[:,1])
+                ax.set_xlabel('Posição a Norte')
+                ax.set_ylabel('Posição a Leste')
+                ax.set_zlabel('Altitude')
+                #l.plt.plot(self.data[0].iloc[:,0],self.data[0].iloc[:,1])
+            else:
+                ax.plot(self.data[simulation_number].iloc[:,7],self.data[simulation_number].iloc[:,6],self.data[simulation_number].iloc[:,1])
+                ax.set_xlabel('Posição a Norte')
+                ax.set_ylabel('Posição a Leste')
+                ax.set_zlabel('Altitude')
+            l.plt.show()
+        elif projection == 2:
+            l.plt.plot(self.data[0].iloc[:,0],self.data[0].iloc[:,1])
+            l.plt.xlabel('Tempo (s)')
+            l.plt.ylabel('Altitude (m)')
+            l.plt.show()
         else:
-            ax.plot3D(self.data[simulation_number].iloc[:,7],self.data[simulation_number].iloc[:,6],self.data[simulation_number].iloc[:,1])
-        l.plt.show()
+            print("projection só assume os valores 2 e 3!")
