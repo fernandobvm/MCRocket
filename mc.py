@@ -196,8 +196,8 @@ class Simulation:
 
         rocket.to_ork(rocket_run)
 
-    def run(self,rocket):
-        l.subprocess.call(["java", "-jar", "D:/Documentos/library/UnB/4Semestre/Capital/OpenRocketTurbo2.jar", "--runSimulations", self.rocket.file_path])
+    def run(self,rocket,or_path):
+        l.subprocess.call(["java", "-jar", or_path, "--runSimulations", self.rocket.file_path])
         self.simu_path = rocket.file_path
 
     def results(self,rocket):
@@ -247,3 +247,6 @@ class Simulation:
             l.plt.show()
         else:
             print("projection só assume os valores 2 e 3!")
+
+    def impact_point(self):
+        self.points = [(self.data[simu].iloc[-1,7],self.data[simu].iloc[-1,6]) for simu in range(len(self.data))]

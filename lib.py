@@ -5,6 +5,7 @@ import math
 import subprocess
 import pandas as pd
 import matplotlib.pyplot as plt
+import statistics as s
 from mpl_toolkits import mplot3d
 
 def unzip_rocket(file_path):
