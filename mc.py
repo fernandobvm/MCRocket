@@ -250,3 +250,15 @@ class Simulation:
 
     def impact_point(self):
         self.points = [(self.data[simu].iloc[-1,7],self.data[simu].iloc[-1,6]) for simu in range(len(self.data))]
+
+    def mean_point(self):
+        if len(self.points) > 1:
+            return (l.s.mean(self.points[:][1]),l.s.mean(self.points[:][2]))
+        else:
+            return self.points[0]
+
+    def std_point(self):
+        try:
+            return (l.s.stdev(self.points[:][1]),l.s.stdev(self.points[:][2]))
+        except IndexError:
+            print("Esse método só é válido quando mais de 1 simulação for realizada.")
