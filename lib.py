@@ -6,7 +6,9 @@ import subprocess
 import pandas as pd
 import matplotlib.pyplot as plt
 import statistics as s
+import numpy as np
 from mpl_toolkits import mplot3d
+from datetime import datetime
 
 def unzip_rocket(file_path):
     path = os.path.dirname(file_path)
@@ -15,7 +17,7 @@ def unzip_rocket(file_path):
         os.remove(path+'/rocket.ork')
         print("Arquivo pré-existente removido!")
     except FileNotFoundError:
-        print("Iniciando a descompactação do arquivo!")
+        a = 0#print("Iniciando a descompactação do arquivo!")
 
     unzip = zipfile.ZipFile(file_path)
     unzip.extractall(path)

@@ -30,7 +30,10 @@ class Simulation:
 
     def add_simulation(self,rocket):
         self.rocket = rocket
-        rocket_run = rocket.to_xml()
+        try:
+            rocket_run = rocket.to_xml()
+        except:
+            rocket_run = l.ET.parse(l.os.path.dirname(rocket.file_path) +'\\' + rocket.name + '.ork')
         root_before = rocket_run.getroot()
         simulations = root_before.find('simulations')
 
@@ -249,16 +252,30 @@ class Simulation:
             print("projection só assume os valores 2 e 3!")
 
     def impact_point(self):
-        self.points = [(self.data[simu].iloc[-1,7],self.data[simu].iloc[-1,6]) for simu in range(len(self.data))]
+        self.points = l.pd.DataFrame([[self.data[simu].iloc[-1,7],self.data[simu].iloc[-1,6]] for simu in range(len(self.data))])
+        self.points.columns = ['x','y']
 
     def mean_point(self):
-        if len(self.points) > 1:
-            return (l.s.mean(self.points[:][1]),l.s.mean(self.points[:][2]))
-        else:
-            return self.points[0]
+        return self.points.mean()
 
     def std_point(self):
-        try:
-            return (l.s.stdev(self.points[:][1]),l.s.stdev(self.points[:][2]))
-        except IndexError:
-            print("Esse método só é válido quando mais de 1 simulação for realizada.")
+        return self.points.std()
+
+    def plot_impact_points(self,sigma=3):
+        avg = self.mean_point()
+        std = self.std_point()
+        temp = self.points[((self.points.x >= avg[0] - sigma*std[0]) & (self.points.x <= avg[0] + sigma*std[0])) & (self.points.y >= avg[1] - sigma*std[1]) & (self.points.y <= avg[1] + sigma*std[1])]
+        l.plt.scatter(temp.iloc[:,0],temp.iloc[:,1])
+        l.plt.title("Dispersão dos Pontos de Impacto {}-sigma".format(sigma))
+        l.plt.xlabel("x")
+        l.plt.ylabel("y")
+        l.plt.show()
+
+class MonteCarlo:
+    def __init__(self,avg_variables,std_variables):
+        self.avg_values = avg_variables
+        self.std_values  = std_variables
+
+    def random_values(self,distribution="normal", num = 1):
+        if distribution == "normal":
+            self.values = l.np.random.normal(self.avg_values,self.std_values,num)
