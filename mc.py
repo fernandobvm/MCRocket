@@ -1,17 +1,66 @@
 import lib as l
 
 class Rocket:
-    
+    """ 
+    A class used to represent a Rocket
+
+    ...
+
+    Attributes
+    ----------
+    name : str
+        rocket name as a string
+    file_path : str
+        path to .ork file
+    engine_path : str
+        path to .eng file
+    xml : 
+        xml object that represents .ork file unzipped
+
+    Method
+    ------
+    to_xml()
+        unzip .ork file and uses ElementTree to read the xml file
+    to_ork(xml)
+        save the rocket xml file as a .ork file
+    """
+
     def __init__(self,name,file_path,engine_path):
+        """
+        Parameters
+        ----------
+        name : str
+            The name of the rocket
+        file_path : str
+            The path to .ork file
+        engine_path : str
+            The path to .eng file
+        """
+
         self.name = name
         self.file_path = file_path
         self.engine_path = engine_path
 
     def to_xml(self):
+        """ Unzip the rocket .ork file and load it as a xml file using ElementTree Python module
+
+        Returns
+        -------
+        ET object
+            rocket ElementTree object
+        """
+
         l.unzip_rocket(self.file_path)
         return l.ET.parse(l.os.path.dirname(self.file_path) + '/rocket.ork')
 
     def to_ork(self,xml):
+        """ Save xml file as .ork file
+
+        Parameters
+        ----------
+        xml :
+            Xml object that represents .ork file unzipped
+        """
         xml.write(self.name+'.ork','utf-8')
         self.file_path = l.os.getcwd() +  '\\' + self.name + '.ork'
 
