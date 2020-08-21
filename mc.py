@@ -18,15 +18,16 @@ class Rocket:
 
 
 class Simulation:
-    def __init__(self,name,elev,windv,winddir,launchrod,turbulency):
+    def __init__(self, name, elevation, wind_velocity, wind_direction, launchrod_direction, launch_rod, turbulency):
         self.name = name
-        self.elevation = elev
-        self.wind_velocity = windv
-        self.wind_direction = winddir
         self.location = ""
-        self.launch_rod = launchrod
-        self.turbulency = turbulency
         self.simu_path = ""
+        self.elevation = elevation
+        self.wind_velocity = wind_velocity
+        self.launch_rod = launch_rod
+        self.turbulency = turbulency
+        self.wind_direction = wind_direction
+        self.launchrod_direction = launchrod_direction
 
     def add_simulation(self,rocket):
         self.rocket = rocket
@@ -72,7 +73,7 @@ class Simulation:
         #Direção do lançamento
         launchroddirection = l.ET.SubElement(conditions,'launchroddirection')
         #launchroddirection.text = str(launchangles[3][1])
-        launchroddirection.text = str(0)
+        launchroddirection.text = str(self.launchrod_direction)
 
         #Vento Médio
         windaverage = l.ET.SubElement(conditions,'windaverage')
@@ -106,7 +107,7 @@ class Simulation:
         atmosphere.attrib['model'] = 'isa'
 
         timestep = l.ET.SubElement(conditions,'timestep')
-        timestep.text = '0.05'
+        timestep.text = '0.01'
 
         flightdata = l.ET.SubElement(simulation,'flightdata')
         flightdata.attrib['maxaltitude'] = '1000' #Valor arbitrário
@@ -130,7 +131,7 @@ class Simulation:
                     #Nome da simulação
                     name = l.ET.SubElement(simulation,'name')
                     #name.text = '{}° de elevação, sob ventos de {} m/s {}°'.format(elev, wind,winddir*180/math.pi)
-                    name.text = self.name
+                    name.text = str(self.name)
 
                     #Método de resolução
                     simulator = l.ET.SubElement(simulation,'simulator')
@@ -149,7 +150,7 @@ class Simulation:
 
                     #Tamanho do Trilho de Lançamento
                     launchrodlength = l.ET.SubElement(conditions,'launchrodlength')
-                    launchrodlength.text = self.launch_rod
+                    launchrodlength.text = str(self.launch_rod)
 
                     #Ângulo de lançamento
                     launchrodangle = l.ET.SubElement(conditions,'launchrodangle')
@@ -166,7 +167,7 @@ class Simulation:
 
                     #Turbulência do Vento
                     windturbulence = l.ET.SubElement(conditions,'windturbulence')
-                    windturbulence.text = str(0.10)
+                    windturbulence.text = str(self.turbulency)
 
                     #Direção do Vento
                     launchwinddirection = l.ET.SubElement(conditions,'winddirection')
@@ -192,7 +193,7 @@ class Simulation:
                     atmosphere.attrib['model'] = 'isa'
 
                     timestep = l.ET.SubElement(conditions,'timestep')
-                    timestep.text = '0.05'
+                    timestep.text = '0.01'
 
                     flightdata = l.ET.SubElement(simulation,'flightdata')
                     flightdata.attrib['maxaltitude'] = '1000' #Valor arbitrário
@@ -278,4 +279,15 @@ class MonteCarlo:
 
     def random_values(self,distribution="normal", num = 1):
         if distribution == "normal":
-            self.values = l.np.random.normal(self.avg_values,self.std_values,num)
+            vetor = []
+            for i in range(0,len(self.avg_values)):
+                vetor.append(l.np.random.normal(self.avg_values[i],self.std_values[i],num))
+            #vetor = l.np.append(vetor,axis=0)
+            self.values = vetor
+    
+    def montecarlo_simulation(self):
+        return Simulation('Teste1', self.values[0], [0], [0], self.values[1], self.values[2], 0)
+        # simu.add_all_simulations(foguete)
+        # simu.run(foguete, openrocket)
+        # simu.results(foguete)
+        # self.mc_data = simu.data
