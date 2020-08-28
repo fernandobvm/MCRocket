@@ -65,8 +65,43 @@ class Rocket:
         self.file_path = l.os.getcwd() +  '\\' + self.name + '.ork'
 
 
-
 class Simulation:
+    """
+    A class used to setup an OpenRocket simulation
+
+    ....
+
+    Attributes
+    ----------
+    name : str
+        simulation name or description
+    elevation : float
+        launch rod angle from vertical in degrees
+    wind_velocity : float
+        wind velocity in meters per second
+    wind_direction : float
+        wind direction in degrees
+    launcrod_direction : float
+        direction of launch in degrees
+    launch_rod : float
+        launch rod length
+    turbulency : float
+        turbulency intensity
+    rocket : 
+        class Rocket object
+    or_path : str
+        path to OpenRocket file
+    
+
+    Method
+    ------
+    add_simulation(rocket)
+        add a simulation to the rocket file
+    add_all_simulations(rocket)
+        by inpunting vectors as initial conditions it combine them all in many simulations
+    run(rocket,or_path)
+        run all simulations
+    """
     def __init__(self, name, elevation, wind_velocity, wind_direction, launchrod_direction, launch_rod, turbulency):
         self.name = name
         self.location = ""
@@ -208,7 +243,7 @@ class Simulation:
                     #Direção do lançamento
                     launchroddirection = l.ET.SubElement(conditions,'launchroddirection')
                     #launchroddirection.text = str(launchangles[3][1])
-                    launchroddirection.text = str(0)
+                    launchroddirection.text = str(self.launchrod_direction)
 
                     #Vento Médio
                     windaverage = l.ET.SubElement(conditions,'windaverage')
@@ -277,18 +312,19 @@ class Simulation:
 
         self.data = simus
 
-    def plot(self,simulation_number = 0, projection = 3):
+    def plot(self,simulation_number = -1, projection = 3):
         if projection == 3:    
             fig = l.plt.figure()
             ax = l.plt.axes(projection='3d')
-            if simulation_number == 0:
-                ax.plot(self.data[0].iloc[:,7],self.data[0].iloc[:,6],self.data[0].iloc[:,1])
+            if simulation_number != -1:
+                ax.plot(self.data[simulation_number].iloc[:,7],self.data[simulation_number].iloc[:,6],self.data[simulation_number].iloc[:,1])
                 ax.set_xlabel('Posição a Norte')
                 ax.set_ylabel('Posição a Leste')
                 ax.set_zlabel('Altitude')
                 #l.plt.plot(self.data[0].iloc[:,0],self.data[0].iloc[:,1])
             else:
-                ax.plot(self.data[simulation_number].iloc[:,7],self.data[simulation_number].iloc[:,6],self.data[simulation_number].iloc[:,1])
+                for simus in self.data:
+                    ax.plot(simus.iloc[:,7],simus.iloc[:,6],simus.iloc[:,1])
                 ax.set_xlabel('Posição a Norte')
                 ax.set_ylabel('Posição a Leste')
                 ax.set_zlabel('Altitude')
@@ -304,13 +340,19 @@ class Simulation:
     def impact_point(self):
         self.points = l.pd.DataFrame([[self.data[simu].iloc[-1,7],self.data[simu].iloc[-1,6]] for simu in range(len(self.data))])
         self.points.columns = ['x','y']
+        avg = self.__mean_point()
+        std = self.__std_point()
+        self.points['sigma'] = 0
+        self.points.loc[((self.points.x >= avg[0] - 3*std[0]) & (self.points.x <= avg[0] + 3*std[0])) & (self.points.y >= avg[1] - 3*std[1]) & (self.points.y <= avg[1] + 3*std[1]),'sigma'] = 3
+        self.points.loc[((self.points.x >= avg[0] - 2*std[0]) & (self.points.x <= avg[0] + 2*std[0])) & (self.points.y >= avg[1] - 2*std[1]) & (self.points.y <= avg[1] + 2*std[1]),'sigma'] = 2
+        self.points.loc[((self.points.x >= avg[0] - 1*std[0]) & (self.points.x <= avg[0] + 1*std[0])) & (self.points.y >= avg[1] - 1*std[1]) & (self.points.y <= avg[1] + 1*std[1]),'sigma'] = 1
 
-    def mean_point(self):
+    def __mean_point(self):
         return self.points.mean()
 
-    def std_point(self):
+    def __std_point(self):
         return self.points.std()
-
+        
     def plot_impact_points(self,sigma=3):
         avg = self.mean_point()
         std = self.std_point()
@@ -322,21 +364,48 @@ class Simulation:
         l.plt.show()
 
 class MonteCarlo:
-    def __init__(self,avg_variables,std_variables):
+    def __init__(self,avg_variables,std_variables,foguete):
         self.avg_values = avg_variables
         self.std_values  = std_variables
+        self.foguete = foguete
+        self.openrocket = "D:/Documentos/library/UnB/4Semestre/Capital/OpenRocketTurbo2.jar"
 
     def random_values(self,distribution="normal", num = 1):
         if distribution == "normal":
             vetor = []
             for i in range(0,len(self.avg_values)):
-                vetor.append(l.np.random.normal(self.avg_values[i],self.std_values[i],num))
+                a = l.np.random.normal(self.avg_values[i],self.std_values[i],num)
+                vetor.append(l.np.append(self.avg_values[i],a))
             #vetor = l.np.append(vetor,axis=0)
             self.values = vetor
+            #print(vetor)
     
     def montecarlo_simulation(self):
-        return Simulation('Teste1', self.values[0], [0], [0], self.values[1], self.values[2], 0)
-        # simu.add_all_simulations(foguete)
-        # simu.run(foguete, openrocket)
-        # simu.results(foguete)
-        # self.mc_data = simu.data
+        #return Simulation('Teste1', self.values[0], [0], [0], self.values[1], 6.0, 0)
+        for itens in range(0,len(self.values[0])):
+            simu = Simulation('Teste1', self.values[0][itens], 0, 0, self.values[1][itens], 6.0, 0)
+            simu.add_simulation(self.foguete)
+        simu.run(self.foguete, self.openrocket)
+        simu.results(self.foguete)
+        simu.impact_point()
+        self.simulation = simu
+        self.data = simu.data
+        self.points = simu.points
+    
+    def plot(self):
+
+        fig = l.plt.figure()
+        ax = l.plt.axes(projection='3d')
+
+        ax.plot(self.data[0].iloc[:,7],self.data[0].iloc[:,6],self.data[0].iloc[:,1])
+        ax.set_xlabel('Posição a Norte')
+        ax.set_ylabel('Posição a Leste')
+        ax.set_zlabel('Altitude')
+        #l.plt.xlim(-10,10)
+
+        col = l.np.where(self.points.sigma == 1,'g', l.np.where(self.points.sigma == 2, 'b','m'))
+
+        ax.scatter(self.points.x,self.points.y,0,color=col)
+        l.plt.show()
+
+
