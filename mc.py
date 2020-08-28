@@ -64,6 +64,32 @@ class Rocket:
         xml.write(self.name+'.ork','utf-8')
         self.file_path = l.os.getcwd() +  '\\' + self.name + '.ork'
 
+class Engine:
+    def __init__(self,engine_path):
+        self.engine_path = engine_path
+        self.__load()
+
+    def montecarlo_thrust(self,std):
+        #self.engine.thrust = l.np.random.normal(self.engine.thrust,std,1)
+        self.engine = self.engine.apply(lambda x : l.np.random.normal(self.engine.thrust,std,1) if x.name == 'thrust' else x)
+        #print(self.engine)
+
+    def __load(self):
+        l.shutil.copyfile(self.engine_path,l.os.path.dirname(self.engine_path) + '/engine.csv')
+        self.name = l.os.path.basename(self.engine_path)
+        l.os.rename(self.engine_path,"C:\\Users\\Fernando Mendes\\AppData\\Roaming\\OpenRocket\\ThrustCurves" +'/m1.eng')
+        self.engine = l.pd.read_csv("C:\\Users\\Fernando Mendes\\AppData\\Roaming\\OpenRocket\\ThrustCurves\\engine.csv", skiprows=1, header=None, sep = '   ')
+        self.engine.columns = ['time','thrust']
+        #print(self.engine)
+        l.os.rename("C:\\Users\\Fernando Mendes\\AppData\\Roaming\\OpenRocket\\ThrustCurves\\m1.eng","C:\\Users\\Fernando Mendes\\AppData\\Roaming\\OpenRocket\\ThrustCurves\\" + self.name)
+
+    def __save(self):
+        return 0
+
+    def __resetEng(self):
+        l.os.rename("C:\\Users\\Fernando Mendes\\AppData\\Roaming\\OpenRocket\\ThrustCurves\\m1.eng","C:\\Users\\Fernando Mendes\\AppData\\Roaming\\OpenRocket\\ThrustCurves\\" + self.name)
+        l.os.remove("C:\\Users\\Fernando Mendes\\AppData\\Roaming\\OpenRocket\\ThrustCurves\\m1.eng")
+
 
 class Simulation:
     """
